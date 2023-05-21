@@ -51,13 +51,14 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'rest_framework.schemas',
     'dj_rest_auth',
-    'allauth',
-    'allauth.account',
-    'allauth.socialaccount',
-    'allauth.socialaccount.providers.google',
+    # 'allauth',
+    # 'allauth.account',
+    # 'allauth.socialaccount',
+    # 'allauth.socialaccount.providers.google',
     'rest_framework_simplejwt',
     'django_extensions',
     'api',
+    'instruments',
     'user_profiles'
 
 ]
@@ -128,6 +129,9 @@ DATABASES = {
     }
 }
 
+AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID')
+AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
+
 DATABASES['default']['TEST'] = {'NAME': 'testdb'}
 
 # Password validation #
@@ -191,25 +195,25 @@ ACCOUNT_AUTHENTICATION_METHOD = 'email'
 ACCOUNT_EMAIL_VERIFICATION = "none"
 
 
-SOCIALACCOUNT_PROVIDERS = {
-    'google': {
-        'APP': {
-            'client_id': os.environ['GOOGLE_CLIENT_ID'],
-            'secret': os.environ['GOOGLE_CLIENT_SECRET'],
-            'key': ''
-        },
-        'SCOPE': [
-            'profile',
-            'email',
-        ],
-        'AUTH_PARAMS': {
-            'access_type': 'online',
-        },
-    }
-}
+# SOCIALACCOUNT_PROVIDERS = {
+#     'google': {
+#         'APP': {
+#             'client_id': os.environ['GOOGLE_CLIENT_ID'],
+#             'secret': os.environ['GOOGLE_CLIENT_SECRET'],
+#             'key': ''
+#         },
+#         'SCOPE': [
+#             'profile',
+#             'email',
+#         ],
+#         'AUTH_PARAMS': {
+#             'access_type': 'online',
+#         },
+#     }
+# }
 
 
-SOCIALACCOUNT_LOGIN_ON_GET = True
+# SOCIALACCOUNT_LOGIN_ON_GET = True
 
 STANDALONE_FRONTEND_ROOT = os.environ['STANDALONE_FRONTEND_ROOT']
 

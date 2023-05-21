@@ -23,7 +23,7 @@ class InstrumentPagination(pagination.PageNumberPagination):
 class InstrumentEndpoint(viewsets.ModelViewSet):
     """
     Endpoint for returning users instruments, either all or by ID. Handles
-    all 
+    all
     """
     authentication_classes = [CookieTokenAuthentication, JWTAuthentication]
     permission_classes = [IsAuthenticated]

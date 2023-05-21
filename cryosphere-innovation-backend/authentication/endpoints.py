@@ -5,9 +5,9 @@ import urllib.parse
 import uuid
 from random import seed
 
-from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
-from allauth.socialaccount.providers.oauth2.client import OAuth2Client
-from dj_rest_auth.registration.views import SocialLoginView
+# from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
+# from allauth.socialaccount.providers.oauth2.client import OAuth2Client
+# from dj_rest_auth.registration.views import SocialLoginView
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.http import HttpResponse
@@ -64,27 +64,27 @@ class CreateNewUser(APIView):
         return Response({'access': str(access_token), 'refresh': str(refresh)}, status=status.HTTP_201_CREATED)
 
 
-class GoogleLogin(SocialLoginView):
+# class GoogleLogin(SocialLoginView):
 
-    """ 
-    This endpoint takes a POST request with the CODE from the Google URL in the body and returns the access/refresh tokens
-    """
+#     """
+#     This endpoint takes a POST request with the CODE from the Google URL in the body and returns the access/refresh tokens
+#     """
 
-    adapter_class = GoogleOAuth2Adapter
-    callback_url = settings.WEBSITE_ROOT + \
-        '/auth/authentication/google/login/callback/'
-    client_class = OAuth2Client
+#     adapter_class = GoogleOAuth2Adapter
+#     callback_url = settings.WEBSITE_ROOT + \
+#         '/auth/authentication/google/login/callback/'
+#     client_class = OAuth2Client
 
 
-def google_oauth_login(request):
-    """
-    After successful Google authentication, this returns the CODE in the URL
-    which is used in dj-rest-auth/google/ to return the key
-    """
+# def google_oauth_login(request):
+#     """
+#     After successful Google authentication, this returns the CODE in the URL
+#     which is used in dj-rest-auth/google/ to return the key
+#     """
 
-    params = urllib.parse.urlencode(request.GET)
-    url = f'{settings.STANDALONE_FRONTEND_ROOT}/login/google/{params}'
-    return redirect(url)
+#     params = urllib.parse.urlencode(request.GET)
+#     url = f'{settings.STANDALONE_FRONTEND_ROOT}/login/google/{params}'
+#     return redirect(url)
 
 
 class GoogleOneTap(APIView):

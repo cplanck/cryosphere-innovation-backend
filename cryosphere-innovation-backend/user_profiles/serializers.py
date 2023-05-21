@@ -1,4 +1,4 @@
-from allauth.socialaccount.models import SocialAccount
+# from allauth.socialaccount.models import SocialAccount
 from rest_framework import serializers
 
 from user_profiles.models import *
@@ -15,8 +15,9 @@ class UserProfileSerializer(serializers.ModelSerializer):
     def get_avatar(self, obj):
         avatar = ''
         if obj.has_social_avatar:
-            social_account = SocialAccount.objects.get(user=obj.user)
-            social_avatar = social_account.extra_data.get('picture')
+            # social_account = SocialAccount.objects.get(user=obj.user)
+            # social_avatar = social_account.extra_data.get('picture')
+            social_avatar = ''  # THIS NEEDS TO BE FIXED AS WE MOVE TO ONE-TAP LOGIN!
             if social_avatar:
                 avatar = social_avatar
         elif obj.avatar:
