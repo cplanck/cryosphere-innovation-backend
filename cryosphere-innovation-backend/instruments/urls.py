@@ -6,7 +6,8 @@ from instruments.endpoints import *
 
 router = routers.DefaultRouter()
 
-router.register('instruments', InstrumentEndpoint, basename='instruments')
+router.register('internal/instruments', InternalInstrumentEndpoint,
+                basename='internal_instruments')
 router.register('deployments', DeploymentEndpoint, basename='deployments')
 
 urlpatterns = [

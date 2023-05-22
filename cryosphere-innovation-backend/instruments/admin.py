@@ -5,9 +5,13 @@ from .models import *
 
 # Register your models here.
 class InstrumentAdmin(admin.ModelAdmin):
-    list_display = ['name', 'serial_number', 'type']
+    list_display = ['name', 'serial_number', 'instrument_type']
 
 
-admin.site.register(AvailableInstruments)
+class DeploymentAdmin(admin.ModelAdmin):
+    list_display = ['name', 'instrument', 'status']
+
+
+# admin.site.register(AvailableInstruments)
 admin.site.register(Instrument, InstrumentAdmin)
-admin.site.register(Deployment)
+admin.site.register(Deployment, DeploymentAdmin)

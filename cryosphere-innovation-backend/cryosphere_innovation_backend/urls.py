@@ -17,7 +17,5 @@ urlpatterns = [
     path('data/', include('data.urls')),
     path('users/', include('user_profiles.urls')),
     path('rest-auth/', include('dj_rest_auth.urls')),
-    # path('rest-auth/registration/', include('dj_rest_auth.registration.urls')),
     path('docs/', include_docs_urls(title='api')),
-
 ]
