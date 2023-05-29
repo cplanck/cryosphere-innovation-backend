@@ -4,14 +4,26 @@ from unittest.mock import patch
 from django.contrib.auth.models import User
 from django.test import TestCase
 from django.urls import reverse
+from instruments.models import Deployment, Instrument
 from rest_framework import status
 from rest_framework.test import APITestCase
 from rest_framework_simplejwt.tokens import AccessToken
 
-from ..models import Deployment, Instrument
-
 
 class TestCreateAndGetInternalInstrument(APITestCase):
+
+    """
+    CRUD on the Instrument model.The internal instrument endpoint only accepts 
+    POST requests from staff members.
+
+    In this test, we create an instrument with instrument_type = SIMB3 from an account
+    marked is_staff which sets internal=True. Instruments with this classification 
+    are the Cryosphere Innovation SIMB3s. Note: on creation, SIMB3 instantiation automatically
+    create a deployment index. 
+
+    Get request without an identifier should return a list of all internal
+    instruments. With an identifier it should return a single instance.
+    """
 
     def setUp(self):
         self.user1 = User.objects.create_user(
@@ -32,14 +44,6 @@ class TestCreateAndGetInternalInstrument(APITestCase):
         self.user2_access_token = str(AccessToken.for_user(self.user2))
 
     def test_crud_internal_instrument(self):
-        """
-        Create an SIMB3 from a post request. Program should create the SIMB3
-        instance and also automatically create a deployment instance. The internal
-        instrument endpoint only accepts POST requests from staff members.
-
-        Get request without an identifier should return a list of all internal
-        instruments. With an identifier it should return a single instance.
-        """
 
         url = reverse('internal_instruments-list')
         data = {
@@ -88,6 +92,14 @@ class TestCreateAndGetInternalInstrument(APITestCase):
 
 class TestGetPrivateInternalInstrumentAsOwner(APITestCase):
 
+    """
+    Test instrument privacy controls. If an instrument has a deployment that is
+    private, then it's only visible to the user listed as 'owner' or to any collaborators
+    attached to the deployment. 
+
+    In this test case we are testing that an 'owner' can see private instruments.
+    """
+
     def setUp(self):
         self.user1 = User.objects.create_user(
             email='testuser1@example.com',
@@ -116,7 +128,7 @@ class TestGetPrivateInternalInstrumentAsOwner(APITestCase):
     def test_when_user_is_owner(self):
         url = reverse('internal_instruments-list')
 
-        # user1 should see instrument1 and 2, as they are owner on 1
+        # user1 should see instrument1 and instrument2, as they are owner on 1
         self.client.credentials(
             HTTP_AUTHORIZATION='Bearer ' + self.user1_access_token)
         response = self.client.get(url, format='json')
@@ -132,6 +144,14 @@ class TestGetPrivateInternalInstrumentAsOwner(APITestCase):
 
 
 class TestGetPrivateInternalInstrumentWithCollaborators(APITestCase):
+
+    """
+    Test instrument privacy controls. If an instrument has a deployment that is
+    private, then it's only visible to the user listed as 'owner' or to any collaborators
+    attached to the deployment. 
+
+    In this test case we are testing that an user added as a collaborator can see private instruments.
+    """
 
     def setUp(self):
         self.user1 = User.objects.create_user(
@@ -167,11 +187,10 @@ class TestGetPrivateInternalInstrumentWithCollaborators(APITestCase):
         self.client.credentials(
             HTTP_AUTHORIZATION='Bearer ' + self.user1_access_token)
         response = self.client.get(url, format='json')
-        print(response.data['results'])
         self.assertEqual(len(response.data['results']), 1)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        # user2 should see instrument1 and 2, as they are listed as a collaborator on instrument1s deployment
+        # user2 should see instrument1 and 2, as they are listed as a collaborator on instrument1's deployment
         self.client.credentials(
             HTTP_AUTHORIZATION='Bearer ' + self.user2_access_token)
         response = self.client.get(url, format='json')

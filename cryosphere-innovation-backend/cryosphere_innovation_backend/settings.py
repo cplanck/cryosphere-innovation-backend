@@ -43,7 +43,6 @@ INSTALLED_APPS = [
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
-    'django.contrib.sites',
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'corsheaders',
@@ -51,16 +50,14 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'rest_framework.schemas',
     'dj_rest_auth',
-    # 'allauth',
-    # 'allauth.account',
-    # 'allauth.socialaccount',
-    # 'allauth.socialaccount.providers.google',
     'rest_framework_simplejwt',
     'django_extensions',
     'api',
     'instruments',
-    'user_profiles'
-
+    'user_profiles',
+    'articles',
+    'storages',
+    'algoliasearch_django',
 ]
 
 MIDDLEWARE = [
@@ -92,7 +89,6 @@ CORS_ALLOWED_ORIGINS = [
 ]
 # making sure CORS_ALLOW_HEADERS  is not "*"
 CORS_ALLOW_HEADERS = list(default_headers) + ['Set-Cookie', 'Authorization']
-
 
 ROOT_URLCONF = 'cryosphere_innovation_backend.urls'
 
@@ -129,10 +125,18 @@ DATABASES = {
     }
 }
 
+# MEDIA_ROOT = BASE_DIR / 'media'
+# MEDIA_URL = '/media/'
+
 AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID')
 AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
 
 DATABASES['default']['TEST'] = {'NAME': 'testdb'}
+
+AWS_STORAGE_BUCKET_NAME = 'cryosphere-innovation-django'
+AWS_S3_REGION_NAME = 'us-east-1'
+DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+AWS_S3_CUSTOM_DOMAIN = 'd15g1rufdjpafj.cloudfront.net'
 
 # Password validation #
 # https://docs.djangoproject.com/en/4.0/ref/settings/#auth-password-validators
@@ -176,8 +180,8 @@ REST_AUTH = {
 }
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=50),
-    'REFRESH_TOKEN_LIFETIME': timedelta(minutes=120),  # one week
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=5),
+    'REFRESH_TOKEN_LIFETIME': timedelta(minutes=120),
     'AUTH_HEADER_TYPES': ('Bearer',),
     'AUTH_HEADER_NAME': 'HTTP_AUTHORIZATION',
 }
@@ -185,35 +189,14 @@ SIMPLE_JWT = {
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
     'authentication.email_authentication_backend.EmailBackend',
-    'allauth.account.auth_backends.AuthenticationBackend']
+]
+
+ALGOLIA = {
+    'APPLICATION_ID': '2VQU5R8BW0',
+    'API_KEY': '8cfb959eaf00eb09e8e296ef747dae95'
+}
 
 SITE_ID = 1
-
-ACCOUNT_EMAIL_REQUIRED = True
-ACCOUNT_AUTHENTICATION_METHOD = 'email'
-# ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
-ACCOUNT_EMAIL_VERIFICATION = "none"
-
-
-# SOCIALACCOUNT_PROVIDERS = {
-#     'google': {
-#         'APP': {
-#             'client_id': os.environ['GOOGLE_CLIENT_ID'],
-#             'secret': os.environ['GOOGLE_CLIENT_SECRET'],
-#             'key': ''
-#         },
-#         'SCOPE': [
-#             'profile',
-#             'email',
-#         ],
-#         'AUTH_PARAMS': {
-#             'access_type': 'online',
-#         },
-#     }
-# }
-
-
-# SOCIALACCOUNT_LOGIN_ON_GET = True
 
 STANDALONE_FRONTEND_ROOT = os.environ['STANDALONE_FRONTEND_ROOT']
 

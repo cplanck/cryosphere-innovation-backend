@@ -9,13 +9,6 @@ class InstrumentSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class DeploymentSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = Deployment
-        fields = '__all__'
-
-
 class DeploymentInstrumentSerializer(serializers.ModelSerializer):
 
     class Meta:
@@ -24,8 +17,21 @@ class DeploymentInstrumentSerializer(serializers.ModelSerializer):
 
 
 class DeploymentGETSerializer(serializers.ModelSerializer):
+    """
+    Returns a nested representation of instrument on GET requests
+    """
     instrument = DeploymentInstrumentSerializer()
 
+    class Meta:
+        model = Deployment
+        fields = '__all__'
+
+
+class DeploymentSerializer(serializers.ModelSerializer):
+    """
+    Used for POST/PATCH requests (all other than GET) and 
+    requires on an instrument_id to instantiate. 
+    """
     class Meta:
         model = Deployment
         fields = '__all__'

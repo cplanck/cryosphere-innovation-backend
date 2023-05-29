@@ -14,6 +14,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('auth/', include('authentication.urls')),
     path('api/', include('instruments.urls')),
+    path('articles/', include('articles.urls')),
     path('data/', include('data.urls')),
     path('users/', include('user_profiles.urls')),
     path('rest-auth/', include('dj_rest_auth.urls')),

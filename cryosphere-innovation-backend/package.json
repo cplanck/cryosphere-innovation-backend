@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "react-instantsearch-hooks-web": "^6.44.0"
+  }
+}

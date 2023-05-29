@@ -9,9 +9,8 @@ class InstrumentAdmin(admin.ModelAdmin):
 
 
 class DeploymentAdmin(admin.ModelAdmin):
-    list_display = ['name', 'instrument', 'status']
+    list_display = ['name', 'instrument', 'deployment_number', 'status']
 
 
-# admin.site.register(AvailableInstruments)
 admin.site.register(Instrument, InstrumentAdmin)
 admin.site.register(Deployment, DeploymentAdmin)

@@ -3,15 +3,19 @@ import os
 import re
 import urllib.parse
 import uuid
+from datetime import datetime, timedelta
 from random import seed
 
+import jwt
 # from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
 # from allauth.socialaccount.providers.oauth2.client import OAuth2Client
 # from dj_rest_auth.registration.views import SocialLoginView
 from django.conf import settings
+from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
-from django.http import HttpResponse
+from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import redirect, render
+from django.utils import timezone
 from dotenv import load_dotenv
 from google.auth.transport import requests
 from google.oauth2 import id_token
@@ -23,13 +27,45 @@ from rest_framework.views import APIView
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.tokens import AccessToken, RefreshToken
-from rest_framework_simplejwt.views import TokenRefreshView
+from rest_framework_simplejwt.views import (TokenObtainPairView,
+                                            TokenRefreshView, TokenVerifyView)
 from user_profiles.models import UserProfile
 from user_profiles.serializers import UserProfileSerializer
 
 from authentication.http_cookie_authentication import CookieTokenAuthentication
 
 load_dotenv()
+
+
+def prepare_user_response(user):
+    """
+    If user is authenticated, prepare their response. 
+    """
+    user_profile = UserProfile.objects.get(user=user)
+
+    refresh_token = RefreshToken.for_user(user)
+    access_token = refresh_token.access_token
+
+    access_token_expiration = jwt.decode(
+        str(access_token), options={"verify_signature": False})['exp']
+    refresh_token_expiration = jwt.decode(
+        str(refresh_token), options={"verify_signature": False})['exp']
+
+    response = JsonResponse(
+        {
+            # 'access_token_expiration': datetime.fromtimestamp(access_token_expiration),
+            # 'refresh_token_expiration': datetime.fromtimestamp(refresh_token_expiration),
+            'first_name': user.first_name,
+            'last_name': user.last_name,
+            'profile': UserProfileSerializer(user_profile).data
+        })
+
+    response.set_cookie('access_token', str(
+        access_token), httponly=True)
+    response.set_cookie('refresh_token', str(
+        refresh_token), httponly=True)
+
+    return response
 
 
 class CreateNewUser(APIView):
@@ -64,77 +100,79 @@ class CreateNewUser(APIView):
         return Response({'access': str(access_token), 'refresh': str(refresh)}, status=status.HTTP_201_CREATED)
 
 
-# class GoogleLogin(SocialLoginView):
-
-#     """
-#     This endpoint takes a POST request with the CODE from the Google URL in the body and returns the access/refresh tokens
-#     """
-
-#     adapter_class = GoogleOAuth2Adapter
-#     callback_url = settings.WEBSITE_ROOT + \
-#         '/auth/authentication/google/login/callback/'
-#     client_class = OAuth2Client
-
-
-# def google_oauth_login(request):
-#     """
-#     After successful Google authentication, this returns the CODE in the URL
-#     which is used in dj-rest-auth/google/ to return the key
-#     """
-
-#     params = urllib.parse.urlencode(request.GET)
-#     url = f'{settings.STANDALONE_FRONTEND_ROOT}/login/google/{params}'
-#     return redirect(url)
-
-
 class GoogleOneTap(APIView):
+
     def post(self, request):
         try:
-            user_info = id_token.verify_oauth2_token(
+            user_info_from_google = id_token.verify_oauth2_token(
                 request.data, requests.Request(), os.environ['GOOGLE_CLIENT_ID'])
-            # check if email exists, if so, return user info and access keys
 
-            user = User.objects.get(email=user_info['email'])
-            user_profile = UserProfile.objects.get(user=user)
+            user = User.objects.get(email=user_info_from_google['email'])
 
             if user:
-                print(user)
-                refresh_token = RefreshToken.for_user(user)
-                access_token = refresh_token.access_token
-                # return JWT + user info
-                response = HttpResponse(
-                    json.dumps({
-                        'refresh_token': str(refresh_token),
-                        'access_token': str(access_token),
-                        'first_name': user.first_name,
-                        'last_name': user.last_name,
-                        'full_name': user_info['name'],
-                        'user': UserProfileSerializer(user_profile).data
-                    }))
+                response = prepare_user_response(user)
+                return response
+            else:
+                # create account...
+                pass
+
+        except Exception as e:
+            return HttpResponse({'There was a problem logging you in'})
+
+
+class StandardLogin(APIView):
+
+    """
+    Custom endpoint for returning user JWT as an HTTP-only cookie upon providing valid
+    login credentials (email and password). It also returns the access and
+    refresh token expiration dates in the response body. 
+
+    This is where login requests should go from the frontend. 
+    """
+
+    def post(self, request, *args, **kwargs):
+
+        try:
+            user = authenticate(
+                request, username=request.data['username'],
+                password=request.data['password'])
+
+            if user:
+                response = prepare_user_response(user)
+                return response
+            else:
+                return HttpResponse({'There was a problem logging you in'}, status=status.HTTP_403_FORBIDDEN)
+
+        except:
+            return HttpResponse({'There was a problem logging you in'}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class RefreshAccessToken(APIView):
+
+    def post(self, request):
+
+        refresh_token = request.COOKIES.get('refresh_token')
+        if refresh_token:
+            try:
+                token = RefreshToken(refresh_token)
+                token.verify()
+                access_token = token.access_token
+                response = JsonResponse(
+                    {'success': 'New access token retrieved'})
                 response.set_cookie('access_token', str(
                     access_token), httponly=True)
-                response.set_cookie('refresh_token', str(
-                    refresh_token), httponly=True)
-                print(access_token)
-                response['Access-Control-Allow-Origin'] = 'http://localhost:3000'
-                response['Access-Control-Allow-Credentials'] = 'true'
                 return response
-        except Exception as e:
-            # invalid ID or bad request
-            print(e)
-            return HttpResponse(json.dumps({'endpoint': 'worked'}))
+            except Exception as e:
+                print(e)
+                return Response({'Invalid credentials'}, status=403)
+        else:
+            return Response({'Invalid credentials'}, status=403)
 
 
-class TestRequest(APIView):
+class LogoutUser(APIView):
 
-    authentication_classes = [CookieTokenAuthentication]
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request):
-        # print(request.META)
-        print(request.user)
-        # print(request.COOKIES)
-        response = HttpResponse(json.dumps(
-            {'User Requesting': request.user.username}))
-
+    def post(self, request):
+        response = JsonResponse({'message': 'Logged out successfully'})
+        response.delete_cookie('access_token')
+        response.delete_cookie('refresh_token')
         return response

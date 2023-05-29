@@ -41,6 +41,7 @@ class BaseDeployment(models.Model):
     provides the standard attributes used in subsequent classeses.
     """
 
+    deployment_number = models.IntegerField(blank=True, null=True)
     name = models.CharField(max_length=200, null=True, blank=True)
     status = models.CharField(max_length=20, null=True, blank=True)
     location = models.CharField(max_length=500, null=True, blank=True)
@@ -48,8 +49,8 @@ class BaseDeployment(models.Model):
     deployment_description = models.TextField(
         max_length=2000, null=True, blank=True)
     deployment_notes = models.TextField(max_length=5000, null=True, blank=True)
-    deployment_start_date = models.DateField(null=True, blank=True)
-    deployment_end_date = models.DateField(null=True, blank=True)
+    deployment_start_date = models.DateTimeField(null=True, blank=True)
+    deployment_end_date = models.DateTimeField(null=True, blank=True)
     private = models.BooleanField(default=False, null=True, blank=True)
     details = models.JSONField(blank=True, null=True)
     collaborators = models.ManyToManyField(
